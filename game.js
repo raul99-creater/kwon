@@ -127,13 +127,11 @@ function newLife(){
 
 function showFlash(msg){let old=document.querySelector('.live-flash');if(old)old.remove();const b=document.createElement('div');b.className='live-flash';b.textContent=msg;document.body.appendChild(b);clearTimeout(flashTimer);flashTimer=setTimeout(()=>b.remove(),2400)}
 function doll(type='student',small=false){
-  const smile=type==='good'||type==='baby'||type==='smile';
-  const shirt=type==='good'?'대기업\n정규직':type==='bad'?'폭 망':type==='baby'?'권 지 혁':type==='student'?'지혁 학생':'인생 2회차';
-  return `<div class="doll ${type} ${smile?'smile':''} ${small?'small':''}" aria-label="제공된 사진에서 원본 그대로 오려낸 권지혁 얼굴을 우스꽝스러운 몸통에 붙인 캐릭터">
-    <div class="doll-leg left"></div><div class="doll-leg right"></div><div class="doll-arm left"></div><div class="doll-arm right"></div>
-    <div class="doll-hand left"></div><div class="doll-hand right"></div><div class="doll-neck"></div><div class="doll-shirt"><span>${safe(shirt).replace(/\n/g,'<br>')}</span></div>
-    <img class="doll-face" src="assets/${smile?'jihyeok-smile':'jihyeok-cool'}.png" alt="지혁의 실제 사진에서 오려낸 얼굴" draggable="false">
-    </div>`
+  // Composite uses the original unretouched, photo-cut face over a newly proportioned body.
+  const outfit=['baby','student','good','bad'].includes(type)?type:'student';
+  return `<div class="doll ${outfit} ${small?'small':''}" role="img" aria-label="원본 사진에서 오린 얼굴을 비율에 맞춘 전신 캐릭터에 붙인 권지혁">
+    <img class="doll-illustration" src="assets/character-${outfit}.png" alt="" draggable="false">
+  </div>`;
 }
 function header(){return `<header class="site-head"><div class="wrap head-inner"><div class="brand"><span class="brand-mark">ㄱ</span><span>권지혁으로 살아가기</span></div>
 <nav class="head-actions"><button class="btn-quiet" data-action="hall">기록</button><button class="btn-quiet" data-action="home">처음으로</button></nav></div></header>`}
@@ -216,18 +214,16 @@ function finish(good){
 }
 
 function endingScreen(){const good=game.route==='good',e=game.ending;return `<main class="wrap"><section class="ending-area">
- <div class="ending-hero ${good?'good':''}"><div class="ending-kicker">ENDING ${safe(e.id)}</div>
- <h1>${safe(e.name)}</h1><p class="ending-desc">${safe(e.sub)}</p>${doll(good?'good':'bad')}
+ <div class="ending-hero ${good?'good':''}"><h1>${safe(e.name)}</h1>${doll(good?'good':'bad')}
  </div><div class="ending-actions"><button class="btn-primary" data-action="new">🔁 다시 태어나기</button><button class="btn-secondary" data-action="image">🖼 카드 저장</button><button class="btn-secondary" data-action="share">📋 복사</button><button class="btn-secondary" data-action="hall">📚 기록</button></div>
  </section></main>`}
-
 function hallModal(){
  const n=48,total=Math.ceil(BAD_ENDINGS.length/n);
  const view=modalTab==='collection'
   ? `<div class="collection-head">${unlocked.length} / ${BAD_ENDINGS.length}</div>
      <div class="record-list">${BAD_ENDINGS.slice(galleryPage*n,(galleryPage+1)*n).map(e=>{
        const known=unlocked.includes(e.id);
-       return `<div class="record ${known?'found':'locked'}"><div><strong>${safe(e.id)} · ${known?safe(e.name):'???'}</strong>${known?`<p>${safe(e.kind)} · ${safe(e.sub)}</p>`:''}</div></div>`
+       return `<div class="record ${known?'found':'locked'}"><div><strong>${safe(e.id)} · ${known?safe(e.name):'???'}</strong></div></div>`
      }).join('')}</div><div class="pager"><button class="btn-quiet" data-action="gallery-prev" ${galleryPage===0?'disabled':''}>← 이전</button><b>${galleryPage+1} / ${total}</b><button class="btn-quiet" data-action="gallery-next" ${galleryPage===total-1?'disabled':''}>다음 →</button></div>`
   : `<div class="record-list">${hall.length?hall.map((h,i)=>`<div class="record ${h.good?'good':''}"><div><strong>${i+1}. ${safe(h.ending)}</strong><p>${new Date(h.stamp).toLocaleDateString('ko-KR')} · ${h.age}세</p></div></div>`).join(''):'<div class="help-keys">기록 없음</div>'}</div>
      ${hall.length?'<div style="margin-top:16px;text-align:right"><button class="btn-quiet" data-action="clear-hall">기록 삭제</button></div>':''}`;
@@ -287,34 +283,27 @@ function nextGood(){if(!game||game.screen!=='good')return;
  if(game.goodIndex>=goodLife.length){finish(true);window.scrollTo({top:0,behavior:'smooth'});return}
  game.screen='good';store();render();window.scrollTo({top:0,behavior:'smooth'});
 }
-function resultText(){return `🎲 권지혁으로 살아가기\n${game.ending.name}\n${game.ending.sub}\n${game.age}세\n※ 허구의 패러디`;}
+function resultText(){return `권지혁으로 살아가기 — ${game.ending.name}`;}
 
 async function share(){const t=resultText();try{await navigator.clipboard.writeText(t);showFlash('엔딩 결과를 복사했습니다!')}catch{const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.left='-9999px';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();showFlash('엔딩 결과를 복사했습니다!')}}
 function downloadCard(){
  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
- const ctx=canvas.getContext('2d');let good=game.route==='good';
- ctx.fillStyle=good?'#e4f2e5':'#292522';ctx.fillRect(0,0,1080,1350);
- ctx.strokeStyle=good?'#2b4e3c':'#f2ac77';ctx.lineWidth=8;ctx.strokeRect(45,45,990,1260);
- ctx.textAlign='center';ctx.fillStyle=good?'#356c47':'#fab28d';ctx.font='bold 39px sans-serif';ctx.fillText('권지혁으로 살아가기',540,150);
- ctx.fillStyle=good?'#252522':'#fff5e5';ctx.font='bold 74px sans-serif';
- let title=game.ending.name;
- if(ctx.measureText(title).width>910)ctx.font='bold 59px sans-serif';
- ctx.fillText(title,540,258,910);
- ctx.fillStyle=good?'#53755d':'#f1d7c7';ctx.font='bold 27px sans-serif';
- ctx.fillText(`${game.age}세 | 대한민국 | ${game.ending.id}`,540,318);
- // Explicitly draw the cropped ORIGINAL head PNG. No pixels of the face are regenerated.
+ const ctx=canvas.getContext('2d');const good=game.route==='good';
+ ctx.fillStyle=good?'#e5f0e8':'#292522';ctx.fillRect(0,0,1080,1350);
+ ctx.strokeStyle=good?'#527965':'#c6a38d';ctx.lineWidth=7;ctx.strokeRect(46,46,988,1258);
+ ctx.textAlign='center';ctx.fillStyle=good?'#466e5e':'#ebbc9d';ctx.font='bold 31px sans-serif';ctx.fillText('권지혁으로 살아가기',540,151);
+ ctx.fillStyle=good?'#25372f':'#fff8ef';ctx.font='bold 79px sans-serif';
+ const title=game.ending.name;
+ if(ctx.measureText(title).width>920)ctx.font='bold 64px sans-serif';
+ ctx.fillText(title,540,267,910);
  const img=new Image();img.onload=()=>{
-  ctx.save();ctx.translate(540,370);ctx.rotate(good?.06:-.08);
-  ctx.fillStyle=good?'#496a88':'#e8a65d';ctx.fillRect(-170,340,340,355);
-  ctx.fillStyle='#292522';ctx.fillRect(-160,630,125,130);ctx.fillRect(35,630,125,130);
-  ctx.fillStyle='#fff1d4';ctx.font='bold 37px sans-serif';ctx.fillText(good?'대기업 정규직':'폭망 인생',0,545);
-  ctx.shadowColor='#ffffff';ctx.shadowBlur=3;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;
-  const scale=good?1.4:1.35;const w=img.width*scale,h=img.height*scale;
-  ctx.drawImage(img,-w/2,0,w,h);ctx.restore();
-  ctx.fillStyle=good?'#32513c':'#ead7cc';ctx.font='bold 27px sans-serif';
-  ctx.fillText('※ 실존 인물과 무관한 허구의 패러디',540,1225);
-  const a=document.createElement('a');a.download=`kwon-jihyeok-ending-${good?'good':'fiction'}.png`;a.href=canvas.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();showFlash('엔딩 이미지가 저장되었습니다.');
- };img.onerror=()=>showFlash('캐릭터 이미지를 찾지 못했습니다.');img.src=`assets/jihyeok-${good?'smile':'cool'}.png`;
+   ctx.drawImage(img,270,322,540,810);
+   ctx.fillStyle=good?'#446a55':'#e6d1bf';ctx.font='22px sans-serif';
+   ctx.fillText('※ 실존 인물의 실제 행적과 무관한 허구의 패러디',540,1225);
+   try {
+    const a=document.createElement('a');a.download='kwon-jihyeok-'+game.ending.id+'.png';a.href=canvas.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();showFlash('엔딩 이미지가 저장되었습니다.');
+   }catch(e){showFlash('이미지 저장을 완료하지 못했습니다.');}
+ };img.onerror=()=>showFlash('캐릭터 이미지를 찾지 못했습니다.');img.src=`assets/character-${good?'good':'bad'}.png`;
 }
 function onAction(el){const action=el.dataset.action;if(!action)return;
  if(action==='home'){modalOpen=false;enterView('home');return}

@@ -22,3 +22,27 @@
 .record.locked{opacity:.5}
 .record.found{background:#fff2dd}
 .pager{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:18px}
+
+/* v3 proportional character & outcome-only ending */
+.doll{width:320px;height:480px;position:relative;isolation:isolate;filter:none;transform:none;margin-inline:auto}
+.doll .doll-illustration{display:block;width:320px;height:480px;max-width:none;object-fit:contain;filter:drop-shadow(3px 5px 0 rgba(42,33,27,.12))}
+.doll.small{transform:scale(.60);transform-origin:center top;height:480px;margin-bottom:-184px}
+.cover{min-height:535px;overflow:hidden}
+.cover .doll{transform:scale(1);margin-top:6px}
+.portrait-card .doll.small{transform:scale(.58);transform-origin:center top;height:480px;margin-top:0;margin-bottom:-195px}
+.birth-sheet .doll{height:480px;transform:scale(.65);transform-origin:center top;margin-bottom:-165px;margin-top:14px}
+.ending-hero{padding-top:44px;padding-bottom:22px}
+.ending-hero h1{font-size:clamp(35px,6.2vw,68px);margin:0 auto 5px;max-width:770px}
+.ending-hero .doll{height:480px;transform:scale(.77);transform-origin:center top;margin-top:10px;margin-bottom:-105px}
+.ending-actions{margin-top:22px}
+@media(max-width:900px){
+ .cover{min-height:455px}.cover .doll{transform:scale(.82);margin-top:0}
+ .portrait-card .doll.small{transform:scale(.52);margin-bottom:-230px}
+}
+@media(max-width:690px){
+ .cover{min-height:370px}.cover .doll{transform:scale(.69);margin-top:0}
+ .portrait-card .doll.small{transform:scale(.45);margin-top:-6px;margin-bottom:-260px}
+ .birth-sheet .doll{transform:scale(.56);margin-top:8px;margin-bottom:-205px}
+ .ending-hero .doll{transform:scale(.64);margin-top:16px;margin-bottom:-170px}
+ .ending-hero h1{font-size:clamp(33px,8.5vw,53px)}
+}
